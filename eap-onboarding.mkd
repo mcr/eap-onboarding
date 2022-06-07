@@ -1,7 +1,7 @@
 ---
-title: Operational Considerations for Manufacturer Authorized Signing Authority
-abbrev: MASA Considerations
-docname: draft-richardson-anima-masa-considerations-00
+title: EAP defaults for devices that need to onboard
+abbrev: EAP-onboarding
+docname: draft-richardson-emu-eap-onboarding-00
 
 stand_alone: true
 ipr: trust200902
@@ -17,6 +17,10 @@ pi:    # can use array (if all yes) or hash here
 
 author:
 
+- ins: A. Dekok
+  name: Alan DeKok
+  org: Deploying Radius
+  email: aland@deployingradius.com
 
 - ins: M. Richardson
   name: Michael Richardson
@@ -25,26 +29,78 @@ author:
 
 normative:
   BCP14: RFC8174
-  I-D.ietf-anima-bootstrapping-keyinfra:
 
 informative:
   RFC7030:
+  RFC8995:
+  dpp:
+    title: "Device Provisioning Protocol Specification"
+    format:
+      pdf: https://github.com/kcdtv/wpa3/blob/master/Device_Provisioning_Protocol_Specification_v1.0.pdf
+    target: "https://www.wi-fi.org/downloads-registered-guest/Device_Provisioning_Protocol_Draft_Technical_Specification_Package_v0_0_23_0.zip/31255"
 
 --- abstract
 
-This document describes a number of operational modes that a
-BRSKI Manufacturer Authorized Signing Authority (MASA) may take on.
+This document describes a method by which an unconfigured device
+can use EAP to join a network on which further device onboarding,
+network attestation or other remediation.
 
-Each mode is defined, and then each mode is given a relevance
-within an over applicability of what kind of organization the
-MASA is deployed into.  This document does not change any
-protocol mechanisms.
+MORE.
 
 --- middle
 
 # Introduction
 
-How about that {{BCP14}}.
+There are a multitude of situations where a network device needs to join a new (wireless) network but where the device does not yet have the right credentials for that network.
+
+The process by which a device acquires these credentials has become known as onboarding
+{{I-D.irtf-t2trg-secure-bootstrapping}}.
+There are many onboarding protocols, including {{RFC8995}}, {{RFC9140}}, {{dpp}}, CSA MATTER, and OPC UA Part 21.
+Some of these protocols use WiFi Public frames, or live inside EAP.
+Others depend upon using IP connectivity, which often seems to cause a circular dependancy problem: To get IP connectivity, IP connectivity is assumed
+This document is about how to get enough IP connectivity using EAP in order to run the onboarding protocol.
+
+The process detailed in this document uses the unauthenticated client mode of EAP-TLS.
+
+# Terminology
+
+{::boilerplate bcp14}
+
+# Protocol Details
+
+## Discovery
+
+The WiFi beacon should include an EAP realm of onboarding.arpa.
+
+## Authentication
+
+The supplicant picks EAP-TLS {{RFC5216}}.
+It can use TLS 1.2 or TLS 1.3 {{RFC9190}}, but TLS 1.3 or higher is RECOMMENDED.
+
+The supplicant uses an identity of nobody@onboarding.arpa, and provides no TLS client authentication.
+This is an option in TLS 1.2 and TLS 1.3, but it is not often used in EAP-TLS.
+
+## Authorization
+
+Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into a quarantined network.
+
+When using RADIUS for the backend communication, this is done using RADIUS attributes X, Y, and Z as per RFCXXXX.
+
+## Characteristics of Quarantine Network
+
+The quarantine network SHOULD be segregated at layer-two (ethernet), and should not permit ethernet frames to any destination other than a small set of specified routers.
+
+For some onboarding protocols such as {{RFC8995}}, only IPv6 Link-Local frames are needed.
+The network MUST provide a Join Proxy as specified in {{RFC8995, Section 4}}.
+
+For other onboarding protocols more capabilities may be needed, in particular there need for a DHCPv4 server may be critical for the device to believe it has connected correctly.
+
+Once on the quarantine network, the use of {{RFC 6876}}
+
+
+
+
+
 
 # Privacy Considerations
 
