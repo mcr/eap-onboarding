@@ -47,6 +47,12 @@ informative:
       pdf: https://github.com/kcdtv/wpa3/blob/master/Device_Provisioning_Protocol_Specification_v1.0.pdf
     target: "https://www.wi-fi.org/downloads-registered-guest/Device_Provisioning_Protocol_Draft_Technical_Specification_Package_v0_0_23_0.zip/31255"
 
+venue:
+  group: anima
+  mail: anima@ietf.org
+  github: mcr/eap-onboarding.git
+
+
 --- abstract
 
 This document describes a method by which an unconfigured device can
