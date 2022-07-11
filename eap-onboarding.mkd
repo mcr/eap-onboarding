@@ -33,8 +33,14 @@ normative:
   RFC9190:
 
 informative:
+  RFC6876:
   RFC7030:
+  RFC7170:
+  RFC7542:
+  RFC8952:
   RFC8995:
+  RFC9140:
+  I-D.irtf-t2trg-secure-bootstrapping:
   dpp:
     title: "Device Provisioning Protocol Specification"
     format:
@@ -63,7 +69,7 @@ The process by which a device acquires these credentials has become known as onb
 {{I-D.irtf-t2trg-secure-bootstrapping}}.
 There are many onboarding protocols, including {{RFC8995}}, {{RFC9140}}, {{dpp}}, CSA MATTER, and OPC UA Part 21.
 Some of these protocols use WiFi Public frames, or provide for provisioning as part of EAP, such as {{RFC7170}}.
-Other systems such as {{RFC710}} require pre-existing IP connectivity in order to configure credentials for a device.
+Other systems such as {{RFC7170}} require pre-existing IP connectivity in order to configure credentials for a device.
 This document defines a method where devices can use unauthenticated EAP in order to obtain full network access, albeit in a captive portal {{RFC8952}}.  Once the device is in a captive portal, it has access to the full suite of Internet Protocol (IP) technologies, and can proceed with onboarding.
 We believe that the method defined here is clearer, safer, and easier to implement and deploy than alternatives.
 
@@ -113,7 +119,7 @@ The network MUST provide a Join Proxy as specified in {{RFC8995, Section 4}}.
 
 For other onboarding protocols more capabilities may be needed, in particular there need for a DHCPv4 server may be critical for the device to believe it has connected correctly.
 
-Once on the quarantine network, device uses other protocols {{RFC 6876}} to perform the onboarding action.
+Once on the quarantine network, device uses other protocols {{RFC6876}} to perform the onboarding action.
 
 # Captive Portal
 
