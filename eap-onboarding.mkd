@@ -19,8 +19,8 @@ author:
 
 - ins: A. Dekok
   name: Alan DeKok
-  org: Deploying Radius
-  email: aland@deployingradius.com
+  org: FreeRADIUS
+  email: aland@freeradius.orf
 
 - ins: M. Richardson
   name: Michael Richardson
@@ -29,6 +29,8 @@ author:
 
 normative:
   BCP14: RFC8174
+  RFC5216:
+  RFC9190:
 
 informative:
   RFC7030:
@@ -41,9 +43,13 @@ informative:
 
 --- abstract
 
-This document describes a method by which an unconfigured device
-can use EAP to join a network on which further device onboarding,
-network attestation or other remediation.
+This document describes a method by which an unconfigured device can
+use EAP to join a network on which further device onboarding, network
+attestation or other remediation.  While RFC 5216 EAP-TLS without a
+client certificate.  However, that document defines no method by which
+unauthenticated EAP-TLS can be used.  This draft addresses that issue.
+First, by defining the @eap.arpa domain, and second by showing how it
+can be used to provide network access for onboarding unauthenticated devices.
 
 MORE.
 
@@ -51,16 +57,19 @@ MORE.
 
 # Introduction
 
-There are a multitude of situations where a network device needs to join a new (wireless) network but where the device does not yet have the right credentials for that network.
+There are a multitude of situations where a network device needs to join a new (wireless) network but where the device does not yet have the right credentials for that network.  As the device does not have credentials, it cannot access networks which typically require authentication.  However, since the device does not have network access, it cannot download a new configuration which contains updated credentials.
 
 The process by which a device acquires these credentials has become known as onboarding
 {{I-D.irtf-t2trg-secure-bootstrapping}}.
 There are many onboarding protocols, including {{RFC8995}}, {{RFC9140}}, {{dpp}}, CSA MATTER, and OPC UA Part 21.
-Some of these protocols use WiFi Public frames, or live inside EAP.
-Others depend upon using IP connectivity, which often seems to cause a circular dependancy problem: To get IP connectivity, IP connectivity is assumed
-This document is about how to get enough IP connectivity using EAP in order to run the onboarding protocol.
+Some of these protocols use WiFi Public frames, or provide for provisioning as part of EAP, such as {{RFC7170}}.
+Other systems such as {{RFC710}} require pre-existing IP connectivity in order to configure credentials for a device.
+This document defines a method where devices can use unauthenticated EAP in order to obtain full network access, albeit in a captive portal {{RFC8952}}.  Once the device is in a captive portal, it has access to the full suite of Internet Protocol (IP) technologies, and can proceed with onboarding.
+We believe that the method defined here is clearer, safer, and easier to implement and deploy than alternatives.
 
-The process detailed in this document uses the unauthenticated client mode of EAP-TLS.
+The method detailed in this document uses the unauthenticated client mode of EAP-TLS.  While RFC 5216 EAP-TLS without a client certificate.  However, that document defines no method by which unauthenticated EAP-TLS can be used.  This draft addresses that issue. First, by defining the @eap.arpa domain, and second by showing how it can be used to provid network access for onboarding unauthenticated devices.
+
+Note that this specification does not specify the exact method used for onboarding devices.  There are many possibilities, and not all of them are enumerated here.
 
 # Terminology
 
@@ -68,23 +77,32 @@ The process detailed in this document uses the unauthenticated client mode of EA
 
 # Protocol Details
 
+The onboarding is divided into the following phases:
+
+* Discovery - the supplicant determines that a network can do onboarding,
+* Authentication - the supplicant connects to the network as an unauthenticated device,
+* Authorization - the network provides limited connectivity to the device,
+* Onboarding - the device uses standard IP protocols to perform onboarding,
+* Full network access - the device has provisioned credentials, and can proceed with normal network access.
+
 ## Discovery
 
-The WiFi beacon should include an EAP realm of onboarding.arpa.
+The network should use 802.11u to signal that it can potentially perform onboarding, by using 802.11u and indicating that it supports the realm "eap.arpa".  When a supplicant which requires onboarding sees this realm, it knows that the network may be suitable for onboarding.
+
+Note that not all such networks are suitable for onboarding.  There may be multiple such networks available, and only one (or none) may be willing to onboard this particular device.  Further, the device does not necessarily trust any such network.
+
+Supplicants MUST limit their actions in the onboarding network to the action of onboarding.  If this process cannot be completed, the device MUST disconnect from the onboarding network, and try again, usually by selecting a different network.  As soon as the device has been onboarded, the device MUST disconnect from the onboarding network, and use the provided configuration to authenticate and connect to a fully-capable network.
 
 ## Authentication
 
-The supplicant picks EAP-TLS {{RFC5216}}.
-It can use TLS 1.2 or TLS 1.3 {{RFC9190}}, but TLS 1.3 or higher is RECOMMENDED.
+The supplicant presents itself as an unauthenticated peer, which is allowed by EAP-TLS {{RFC5216}} Section 2.1.1.
+TLS 1.2 or TLS 1.3 {{RFC9190}} may be used, but TLS 1.3 or higher is RECOMMENDED.
 
-The supplicant uses an identity of nobody@onboarding.arpa, and provides no TLS client authentication.
-This is an option in TLS 1.2 and TLS 1.3, but it is not often used in EAP-TLS.
+The supplicant uses an identity of onboarding@eap.arpa, and provides no TLS client certificate.  The use of the "eap.arpa" domain signals to the network that the device wishes to use unauthenticated EAP-TLS.
 
 ## Authorization
 
-Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into a quarantined network.
-
-When using RADIUS for the backend communication, this is done using RADIUS attributes X, Y, and Z as per RFCXXXX.
+Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into a quarantined network.  The exact method is network-dependent, but it is usually done with a dedicated VLAN which has limited network access.
 
 ## Characteristics of Quarantine Network
 
@@ -95,26 +113,39 @@ The network MUST provide a Join Proxy as specified in {{RFC8995, Section 4}}.
 
 For other onboarding protocols more capabilities may be needed, in particular there need for a DHCPv4 server may be critical for the device to believe it has connected correctly.
 
-Once on the quarantine network, the use of {{RFC 6876}}
+Once on the quarantine network, device uses other protocols {{RFC 6876}} to perform the onboarding action.
 
+# Captive Portal
 
-
-
-
+While we can impose no requirements on the rest of the network, captive portals {{RFC8952}} have been used for almost two decades. The administration and operation of captive portals is typically within the authority of administrators who are responsible for network access. As such, we can define additional behavior on, and requirements for, captive portals, so long as those changes materially benefit the network access administrator.
 
 # Privacy Considerations
 
-YYY
+Devices should take care to hide all identifying information from the onboarding network.  Any identifying information MUST be sent encrypted via a method such as TLS.
 
 # Security Considerations
 
-ZZZ
+Devices using an onboarding network MUST assume that the network is untrusted.  All network traffic SHOULD be encrypted in order to prevent attackers from both eavesdropping, and from modifying any provisioning information.
+
+Similarly onboarding networks MUST assume that devices are untrusted, and could be malicious.  Networks MUST make provisions to prevent Denial of Service (DoS) attacks, such as when many devices attempt to connect at the same time.  Networks MUST limit network access to onboarding protocols only.  Networks SHOULD also limit the bandwidth used by any device which is being onboarded.  The configuration information is likely to be small (megabytes at most), and it is reasonable to require a second or two for this process to take place.
+
+Any device which cannot be onboarded within approximately 30 seconds SHOULD be disconnected.  Such a delay signals either a malicious device / network, or a misconfigured device / network.  If onboarding cannot be finished within a short timer, the device should choose another network.
+
+## Use of eap.arpa
+
+Supplicants MUST use the "eap.arpa" domain only for onboarding and related activities.  Supplicant MUST use unauthenticated EAP-TLS.
+
+Networks which support onboarding via the "eap.arpa" domain MUST require that supplicants use unauthenticated EAP-TLS.  The use of EAP types MUST result in rejection, and a denial of all network access.
+
+The "eap.arpa" domain MUST NOT be used in any other context, such as in an NAI {{RFC7542}}, etc. in any other protocol.
 
 # IANA Considerations
 
+The special-use domain "eap.arpa" should be registered in the .arpa registry (<https://www.iana.org/domains/arpa>).  No A, AAAA, or PTR records are requested.
+
 # Acknowledgements
 
-Hello.
+TBD.
 
 # Changelog
 
