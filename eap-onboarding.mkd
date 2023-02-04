@@ -1,7 +1,7 @@
 ---
 title: EAP defaults for devices that need to onboard
 abbrev: EAP-onboarding
-docname: draft-richardson-emu-eap-onboarding-01
+docname: draft-richardson-emu-eap-onboarding-02
 
 stand_alone: true
 ipr: trust200902
@@ -86,13 +86,18 @@ While {{RFC5216}} defines EAP-TLS without a client certificate, that document de
 This draft addresses that issue.
 First, by defining the @eap.arpa domain, and second by showing how it can be used to provid network access for onboarding unauthenticated devices.
 
-Note that this specification does not specify the exact method used for onboarding devices.
-There are many possibilities, with some methods yet to be defined. Not all of them are enumerated here!
+Note that this specification does not specify the exact method used for onboarding devices!
+There are many possibilities, with some methods yet to be defined.
+Not all of them are enumerated here.
 
 
 # Terminology
 
 {::boilerplate bcp14}
+
+The term _supplicant_ is used to refer to the network device which is attempting to do EAP-TLS.
+
+The term _pledge_ (from {{?RFC8995}}) is used to refer to the network device which has successfully performed unauthenticated client mode EAP-TLS, and now has access to a network on which is may perform onboarding.
 
 # Protocol Details
 
@@ -102,27 +107,32 @@ The onboarding is divided into the following phases:
 
 * Authentication - the supplicant connects to the network as an unauthenticated device,
 
-* Authorization - the network provides limited connectivity to the device,
+* Authorization - the network provides limited connectivity to the device/pledge,
 
-* Onboarding - the device uses standard IP protocols to perform onboarding,
+* Onboarding - the device/pledge uses standard IP protocols to perform onboarding,
 
 * Full network access - the device has provisioned credentials, and can proceed with normal network access.
 
 ## Discovery
 
 The network should use 802.11u to signal that it can potentially perform onboarding, by using 802.11u and indicating that it supports the realm "eap.arpa".
+
 When a supplicant which requires onboarding sees this realm, it knows that the network may be suitable for onboarding.
 
-Note that not all such networks are suitable for onboarding.
+Note that not all such networks are suitable for onboarding using the technologies that a supplicant has.
+Some networks might have only a captive portal, intended for human use.
+This is the "coffee shop" case.
+
 There may be multiple such networks available, and only one (or none) may be willing to onboard this particular device.
 Further, the device does not necessarily trust any such network.
 
 There are situations where there may be many hundreds of networks which offer onboarding, and a supplicant device may need to try all of them until it finds a network to which it can successfully onboard.
-An example of such a situation is in a large (dozens to hundreds of floors) apartment building in a downtown core, where radio signals may leak from adjacent units, other floors, and even across the street from adjacent buildings.
-This document does not address this issue, but anticipates future work in 802.11u involving some filtering mechanism involving Bloom Filters.
+An example of such a situation is in a large (dozens to hundreds of floors) apartment building in a downtown core, where radio signals may leak from adjacent units, reflect off glass windows, come from other floors, and even cross the street from adjacent buildings.
+This document does not address this issue, but anticipates future work in 802.11u, perhaps  involving some filtering mechanism using Bloom Filters.
 
 Supplicants MUST limit their actions in the onboarding network to the action of onboarding.
 If this process cannot be completed, the device MUST disconnect from the onboarding network, and try again, usually by selecting a different network.
+
 As soon as the device has been onboarded, the device MUST disconnect from the onboarding network, and use the provided configuration to authenticate and connect to a fully-capable network.
 
 ## Authentication
@@ -134,12 +144,14 @@ The supplicant uses an identity of onboarding@eap.arpa, and provides no TLS clie
 
 ## Authorization
 
-Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into a quarantined network.
+Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into the quarantined or captive portal network.
 The exact method is network-dependent, but it is usually done with a dedicated VLAN which has limited network access.
 
-## Characteristics of Quarantine Network
+## Characteristics of the Quarantine Network
 
 The quarantine network SHOULD be segregated at layer-two (ethernet), and should not permit ethernet frames to any destination other than a small set of specified routers.
+
+Specifically, the layer infrastructure should prevent one pledge from attempting to connect to another pledge.
 
 For some onboarding protocols such as {{RFC8995}}, only IPv6 Link-Local frames are needed.
 Such a network MUST provide a Join Proxy as specified in {{RFC8995, Section 4}}.
@@ -151,9 +163,9 @@ Once on the quarantine network, device uses other protocols {{RFC6876}} to perfo
 
 # Captive Portal
 
-While we can impose no requirements on the rest of the network, captive portals {{RFC8952}} have been used for almost two decades.
+While this document imposes no requirements on the rest of the network, captive portals {{RFC8952}} have been used for almost two decades.
 The administration and operation of captive portals is typically within the authority of administrators who are responsible for network access.
-As such, we can define additional behavior on, and requirements for, captive portals, so long as those changes materially benefit the network access administrator.
+As such, this document defines additional behavior on, and requirements for, captive portals, so long as those changes materially benefit the network access administrator.
 
 # Privacy Considerations
 
@@ -167,8 +179,11 @@ All network traffic SHOULD be encrypted in order to prevent attackers from both 
 
 Similarly onboarding networks MUST assume that devices are untrusted, and could be malicious.
 Networks MUST make provisions to prevent Denial of Service (DoS) attacks, such as when many devices attempt to connect at the same time.
+
 Networks MUST limit network access to onboarding protocols only.
+
 Networks SHOULD also limit the bandwidth used by any device which is being onboarded.
+
 The configuration information is likely to be small (megabytes at most), and it is reasonable to require a second or two for this process to take place.
 
 Any device which cannot be onboarded within approximately 30 seconds SHOULD be disconnected.
@@ -181,7 +196,7 @@ Supplicants MUST use the "eap.arpa" domain only for onboarding and related activ
 Supplicant MUST use unauthenticated EAP-TLS.
 
 Networks which support onboarding via the "eap.arpa" domain MUST require that supplicants use unauthenticated EAP-TLS.
-The use of EAP types MUST result in rejection, and a denial of all network access.
+The use of other EAP types MUST result in rejection, and a denial of all network access.
 
 The "eap.arpa" domain MUST NOT be used in any other context, such as in an NAI {{RFC7542}}, etc. in any other protocol.
 
@@ -195,6 +210,7 @@ TBD.
 
 # Changelog
 
+01 to 02: minor edits.
 
 --- back
 
