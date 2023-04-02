@@ -1,7 +1,7 @@
 ---
 title: EAP defaults for devices that need to onboard
 abbrev: EAP-onboarding
-docname: draft-richardson-emu-eap-onboarding-02
+docname: draft-richardson-emu-eap-onboarding-03
 
 stand_alone: true
 ipr: trust200902
@@ -203,6 +203,32 @@ The "eap.arpa" domain MUST NOT be used in any other context, such as in an NAI {
 # IANA Considerations
 
 The special-use domain "eap.arpa" should be registered in the .arpa registry (<https://www.iana.org/domains/arpa>).  No A, AAAA, or PTR records are requested.
+
+## Domain Name Reservation Considerations
+
+This template is filled in, complying with {{?RFC6761}} section 5.
+
+Users:
+: Human users are not expected to recognize this name as special.
+
+Application Software:
+: Only writers of network connectivity sub-systems (WiFi) are expected to see this new domain. No other software (such browsers) should care about this name.
+
+Name Resolution APIs and Libraries:
+: Name Resolution APIs and Libraries do not need to mark this name as special.
+
+Caching DNS Servers:
+: DNS Caches do not need to do any special processing for this name.
+
+Authoritative DNS Servers:
+: Authoritative DNS servers do not need any special processing.
+
+DNS Server Operators:
+; DNS Server Opreators do not need to do anything special.
+
+DNS Registries/Registrars:
+: DNS Registrars presently do not registar any names in `.arpa`, and this name reservation will be no different.
+
 
 # Acknowledgements
 
