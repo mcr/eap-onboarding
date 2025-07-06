@@ -1,7 +1,7 @@
 ---
 title: EAP defaults for devices that need to onboard
 abbrev: EAP-onboarding
-docname: draft-richardson-emu-eap-onboarding-03
+docname: draft-richardson-emu-eap-onboarding-04
 
 stand_alone: true
 ipr: trust200902
@@ -28,9 +28,9 @@ author:
   email: mcr+ietf@sandelman.ca
 
 normative:
-  BCP14: RFC8174
   RFC5216:
   RFC9190:
+  I-D.ietf-emu-eap-arpa:
 
 informative:
   RFC6876:
@@ -56,18 +56,17 @@ venue:
 --- abstract
 
 This document describes a method by which an unconfigured device can
-use EAP to join a network on which further device onboarding, network
+use EAP-TLS to join a network on which further device onboarding, network
 attestation or other remediation can be done.
 While RFC 5216 supports EAP-TLS without a client certificate, that document defines no method by which unauthenticated EAP-TLS can be used.
 This draft addresses that issue.
-First, by defining the @eap.arpa domain, and second by showing how it
-can be used to provide quarantined network access for onboarding unauthenticated devices.
 
 --- middle
 
 # Introduction
 
-There are a multitude of situations where a network device needs to join a new (wireless) network but where the device does not yet have the right credentials for that network.  As the device does not have credentials, it cannot access networks which typically require authentication.  However, since the device does not have network access, it cannot download a new configuration which contains updated credentials.
+There are a multitude of situations where a network device needs to join a new (wireless) network but where the device does not yet have the right credentials for that network.
+As the device does not have credentials, it cannot access networks which typically require authentication.  However, since the device does not have network access, it cannot download a new configuration which contains updated credentials.
 
 The process by which a device acquires these credentials has become known as onboarding
 {{I-D.irtf-t2trg-secure-bootstrapping}}.
@@ -75,21 +74,24 @@ There are many onboarding protocols, including {{RFC8995}}, {{RFC9140}}, {{dpp}}
 Some of these protocols use WiFi Public frames, or provide for provisioning as part of EAP, such as {{RFC7170}}.
 Other systems require pre-existing IP connectivity in order to configure credentials for a device, which causes a circular dependancy.
 
-This document defines a method where devices can use unauthenticated EAP in order to obtain network access, albeit in a captive portal {{RFC8952}}.
+This document defines a method where devices can use unauthenticated EAP-TLS in order to obtain network access, albeit in a captive portal {{RFC8952}}.
 Once the device is in a captive portal, it has access to the full suite of Internet Protocol (IP) technologies, and can proceed with onboarding.
-We believe that the method defined here is clearer, safer, and easier to implement and deploy than alternatives.
-This method also allows for multiple onboarding technologies to co-exist, and for the technologies to evolve without requiring invasive upgrades to layer-2 infrastructure.
+
+This method is clearer, safer, and easier to implement and deploy than alternatives as it does not attempt to replicate the IP layers or TCP transports over an EAP layer.
+
+This method also allows for multiple onboarding technologies to co-exist, and for the technologies to evolve without requiring invasive upgrades to the layer-2 infrastructure.
 
 The method detailed in this document uses the unauthenticated client mode of EAP-TLS.
 While {{RFC5216}} defines EAP-TLS without a client certificate, that document defines no method by which unauthenticated EAP-TLS can be used.
 
 This draft addresses that issue.
-First, by defining the @eap.arpa domain, and second by showing how it can be used to provid network access for onboarding unauthenticated devices.
+{{I-D.emu-eap-arpa}} has defined the @eap.arpa domain, and this document builds upon it
+by showing how it can be used to provid network access for onboarding unauthenticated devices.
 
 Note that this specification does not specify the exact method used for onboarding devices!
 There are many possibilities, with some methods yet to be defined.
 Not all of them are enumerated here.
-
+This document explains how to get the wireless equivalent of a plugged in wire, but without any promises of further connectivity.
 
 # Terminology
 
@@ -140,18 +142,20 @@ As soon as the device has been onboarded, the device MUST disconnect from the on
 The supplicant presents itself as an unauthenticated peer, which is allowed by EAP-TLS {{RFC5216}} Section 2.1.1.
 TLS 1.2 or TLS 1.3 {{RFC9190}} may be used, but TLS 1.3 or higher is RECOMMENDED.
 
-The supplicant uses an identity of onboarding@eap.arpa, and provides no TLS client certificate.  The use of the "eap.arpa" domain signals to the network that the device wishes to use unauthenticated EAP-TLS.
+The supplicant uses an identity of onboarding@eap.arpa, and provides no TLS client certificate.
+The use of the "eap.arpa" domain signals to the network that the device wishes to use unauthenticated EAP-TLS.
 
 ## Authorization
 
 Upon receipt of a supplicant without any authentication, the AAA server returns instructions to the authenticator to place the new client into the quarantined or captive portal network.
-The exact method is network-dependent, but it is usually done with a dedicated VLAN which has limited network access.
+The exact method is network-dependent, but it is usually done with a dedicated VLAN which has limited network
+access.
 
 ## Characteristics of the Quarantine Network
 
 The quarantine network SHOULD be segregated at layer-two (ethernet), and should not permit ethernet frames to any destination other than a small set of specified routers.
 
-Specifically, the layer infrastructure should prevent one pledge from attempting to connect to another pledge.
+Specifically, the layer infrastructure should prevent one pledge from attempting to connect to another pledge on the same quarantine network.
 
 For some onboarding protocols such as {{RFC8995}}, only IPv6 Link-Local frames are needed.
 Such a network MUST provide a Join Proxy as specified in {{RFC8995, Section 4}}.
@@ -160,6 +164,10 @@ For other onboarding protocols more capabilities may be needed, in particular th
 This is particularly the case where a normal "smartphone" or laptop system will onboard via a captive portal.
 
 Once on the quarantine network, device uses other protocols {{RFC6876}} to perform the onboarding action.
+
+Note that the Pledge could also wind up in this qurantine network when using client credentials which are expired, or if the Pledge is unable to provide Evidence {{?RFC9334}} that it is trustworthy.
+It is common for enterprises to force desktop/laptop Pledge systems into a quarantine network when it has been determined that the Pledge contains malware, or is might be considered vulnerable to current attacks.
+Such quarantine networks usually provide very limited access, but do include access to apply system patches.
 
 # Captive Portal
 
@@ -180,55 +188,35 @@ All network traffic SHOULD be encrypted in order to prevent attackers from both 
 Similarly onboarding networks MUST assume that devices are untrusted, and could be malicious.
 Networks MUST make provisions to prevent Denial of Service (DoS) attacks, such as when many devices attempt to connect at the same time.
 
-Networks MUST limit network access to onboarding protocols only.
+Networks MUST limit network access to onboarding protocols and captive portal access only.
 
 Networks SHOULD also limit the bandwidth used by any device which is being onboarded.
 
-The configuration information is likely to be small (megabytes at most), and it is reasonable to require a second or two for this process to take place.
+Any returned configuration information from onboarding is likely to be small (megabytes at most), and it is reasonable to require a second or two for this process to take place.
 
-Any device which cannot be onboarded within approximately 30 seconds SHOULD be disconnected.
+Any device which cannot be onboarded within approximately 30 seconds SHOULD be disconnected from the quarantine network if there is no obvious activity.
+(A device with an active download of a software patch should be allowed to finish)
+
+An idle device should not remain connected.
 Such a delay signals either a malicious device / network, or a misconfigured device / network.
 If onboarding cannot be finished within a short timer, the device should choose another network.
 
+
 ## Use of eap.arpa
 
-Supplicants MUST use the "eap.arpa" domain only for onboarding and related activities.
+Supplicants MUST use the "eap.arpa" domain only for onboarding and related activities. {{I-D.ietf-emu-eap-arpa}}
 Supplicant MUST use unauthenticated EAP-TLS.
 
 Networks which support onboarding via the "eap.arpa" domain MUST require that supplicants use unauthenticated EAP-TLS.
 The use of other EAP types MUST result in rejection, and a denial of all network access.
 
-The "eap.arpa" domain MUST NOT be used in any other context, such as in an NAI {{RFC7542}}, etc. in any other protocol.
-
 # IANA Considerations
 
-The special-use domain "eap.arpa" should be registered in the .arpa registry (<https://www.iana.org/domains/arpa>).  No A, AAAA, or PTR records are requested.
+A new entry in the "EAP Provisioning Identifiers" {{I-D.ietf.emu-eap-arpa}} is required.
+It is unclear what this entry should be.
 
-## Domain Name Reservation Considerations
-
-This template is filled in, complying with {{?RFC6761}} section 5.
-
-Users:
-: Human users are not expected to recognize this name as special.
-
-Application Software:
-: Only writers of network connectivity sub-systems (WiFi) are expected to see this new domain. No other software (such browsers) should care about this name.
-
-Name Resolution APIs and Libraries:
-: Name Resolution APIs and Libraries do not need to mark this name as special.
-
-Caching DNS Servers:
-: DNS Caches do not need to do any special processing for this name.
-
-Authoritative DNS Servers:
-: Authoritative DNS servers do not need any special processing.
-
-DNS Server Operators:
-; DNS Server Opreators do not need to do anything special.
-
-DNS Registries/Registrars:
-: DNS Registrars presently do not registar any names in `.arpa`, and this name reservation will be no different.
-
+Perhaps it should be @nobody.eap.arpa.
+Perhaps it should be nobody@eap.arpa.
 
 # Acknowledgements
 
@@ -236,6 +224,8 @@ TBD.
 
 # Changelog
 
+04: document updated to be in sync with draft-ietf-emu-eap-arpa.
+03: refreshed so it does not expire
 01 to 02: minor edits.
 
 --- back
