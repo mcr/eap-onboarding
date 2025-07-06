@@ -34,9 +34,7 @@ normative:
 
 informative:
   RFC6876:
-  RFC7030:
   RFC7170:
-  RFC7542:
   RFC8952:
   RFC8995:
   RFC9140:
