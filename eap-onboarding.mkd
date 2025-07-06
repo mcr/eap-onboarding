@@ -85,7 +85,7 @@ The method detailed in this document uses the unauthenticated client mode of EAP
 While {{RFC5216}} defines EAP-TLS without a client certificate, that document defines no method by which unauthenticated EAP-TLS can be used.
 
 This draft addresses that issue.
-{{I-D.emu-eap-arpa}} has defined the @eap.arpa domain, and this document builds upon it
+{{I-D.ietf-emu-eap-arpa}} has defined the @eap.arpa domain, and this document builds upon it
 by showing how it can be used to provid network access for onboarding unauthenticated devices.
 
 Note that this specification does not specify the exact method used for onboarding devices!
@@ -212,7 +212,7 @@ The use of other EAP types MUST result in rejection, and a denial of all network
 
 # IANA Considerations
 
-A new entry in the "EAP Provisioning Identifiers" {{I-D.ietf.emu-eap-arpa}} is required.
+A new entry in the "EAP Provisioning Identifiers" {{I-D.ietf-emu-eap-arpa}} is required.
 It is unclear what this entry should be.
 
 Perhaps it should be @nobody.eap.arpa.
