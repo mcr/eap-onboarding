@@ -72,8 +72,8 @@ There are many onboarding protocols, including {{RFC8995}}, {{RFC9140}}, {{dpp}}
 Some of these protocols use WiFi Public frames, or provide for provisioning as part of EAP, such as {{RFC7170}}.
 Other systems require pre-existing IP connectivity in order to configure credentials for a device, which causes a circular dependancy.
 
-This document defines a method where devices can use unauthenticated EAP-TLS in order to obtain network access, albeit in a captive portal {{RFC8952}}.
-Once the device is in a captive portal, it has access to the full suite of Internet Protocol (IP) technologies, and can proceed with onboarding.
+This document defines a method where devices can use unauthenticated EAP-TLS in order to obtain some network access, often in a captive portal {{RFC8952}}.
+Once the device is on that basic network, it has access to the full suite of Internet Protocol (IP) technologies, and can proceed with onboarding.
 
 This method is clearer, safer, and easier to implement and deploy than alternatives as it does not attempt to replicate the IP layers or TCP transports over an EAP layer.
 
@@ -81,13 +81,13 @@ This method also allows for multiple onboarding technologies to co-exist, and fo
 
 The method detailed in this document uses the unauthenticated client mode of EAP-TLS.
 While {{RFC5216}} defines EAP-TLS without a client certificate, that document defines no method by which unauthenticated EAP-TLS can be used.
-
 This draft addresses that issue.
+
 {{I-D.ietf-emu-eap-arpa}} has defined the @eap.arpa domain, and this document builds upon it
 by showing how it can be used to provid network access for onboarding unauthenticated devices.
 
 Note that this specification does not specify the exact method used for onboarding devices!
-There are many possibilities, with some methods yet to be defined.
+There are many possibilities, and some new methods may come along in the future.
 Not all of them are enumerated here.
 This document explains how to get the wireless equivalent of a plugged in wire, but without any promises of further connectivity.
 
@@ -120,7 +120,7 @@ The network should use 802.11u to signal that it can potentially perform onboard
 When a supplicant which requires onboarding sees this realm, it knows that the network may be suitable for onboarding.
 
 Note that not all such networks are suitable for onboarding using the technologies that a supplicant has.
-Some networks might have only a captive portal, intended for human use.
+Some networks might have only a captive portal, intended for a human attended device (such a laptop or smartphone).
 This is the "coffee shop" case.
 
 There may be multiple such networks available, and only one (or none) may be willing to onboard this particular device.
@@ -129,6 +129,8 @@ Further, the device does not necessarily trust any such network.
 There are situations where there may be many hundreds of networks which offer onboarding, and a supplicant device may need to try all of them until it finds a network to which it can successfully onboard.
 An example of such a situation is in a large (dozens to hundreds of floors) apartment building in a downtown core, where radio signals may leak from adjacent units, reflect off glass windows, come from other floors, and even cross the street from adjacent buildings.
 This document does not address this issue, but anticipates future work in 802.11u, perhaps  involving some filtering mechanism using Bloom Filters.
+There is also work such as {{I-D.ietf-scim-device-model}} that may allow the network to more clearly match.
+However, these are all optimizations, allowing the pledge to find a compatible network faster.
 
 Supplicants MUST limit their actions in the onboarding network to the action of onboarding.
 If this process cannot be completed, the device MUST disconnect from the onboarding network, and try again, usually by selecting a different network.
@@ -149,7 +151,7 @@ Upon receipt of a supplicant without any authentication, the AAA server returns 
 The exact method is network-dependent, but it is usually done with a dedicated VLAN which has limited network
 access.
 
-## Characteristics of the Quarantine Network
+## Characteristics of the Onboarding/Quarantine Network
 
 The quarantine network SHOULD be segregated at layer-two (ethernet), and should not permit ethernet frames to any destination other than a small set of specified routers.
 
@@ -165,7 +167,7 @@ Once on the quarantine network, device uses other protocols {{RFC6876}} to perfo
 
 Note that the Pledge could also wind up in this qurantine network when using client credentials which are expired, or if the Pledge is unable to provide Evidence {{?RFC9334}} that it is trustworthy.
 It is common for enterprises to force desktop/laptop Pledge systems into a quarantine network when it has been determined that the Pledge contains malware, or is might be considered vulnerable to current attacks.
-Such quarantine networks usually provide very limited access, but do include access to apply system patches.
+Such quarantine networks usually provide very limited access, but do include access to apply system patches, which would remedy the vulnerability.
 
 # Captive Portal
 
@@ -193,7 +195,7 @@ Networks SHOULD also limit the bandwidth used by any device which is being onboa
 Any returned configuration information from onboarding is likely to be small (megabytes at most), and it is reasonable to require a second or two for this process to take place.
 
 Any device which cannot be onboarded within approximately 30 seconds SHOULD be disconnected from the quarantine network if there is no obvious activity.
-(A device with an active download of a software patch should be allowed to finish)
+(A device with an active download of a software patch should be allowed to finish before disconnecting)
 
 An idle device should not remain connected.
 Such a delay signals either a malicious device / network, or a misconfigured device / network.
@@ -222,6 +224,7 @@ TBD.
 
 # Changelog
 
+05: document refresh, some minor edits.
 04: document updated to be in sync with draft-ietf-emu-eap-arpa.
 03: refreshed so it does not expire
 01 to 02: minor edits.
