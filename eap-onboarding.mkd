@@ -1,7 +1,7 @@
 ---
 title: EAP defaults for devices that need to onboard
 abbrev: EAP-onboarding
-docname: draft-richardson-emu-eap-onboarding-04
+docname: draft-richardson-emu-eap-onboarding-05
 
 stand_alone: true
 ipr: trust200902
