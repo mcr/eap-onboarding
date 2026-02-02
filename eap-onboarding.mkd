@@ -1,7 +1,7 @@
 ---
 title: EAP defaults for devices that need to onboard
 abbrev: EAP-onboarding
-docname: draft-richardson-emu-eap-onboarding-05
+docname: draft-ietf-emu-eap-onboarding-00
 
 stand_alone: true
 ipr: trust200902
@@ -38,6 +38,7 @@ informative:
   RFC8952:
   RFC8995:
   RFC9140:
+  I-D.ietf-scim-device-model:
   I-D.irtf-t2trg-secure-bootstrapping:
   dpp:
     title: "Device Provisioning Protocol Specification"
@@ -46,8 +47,8 @@ informative:
     target: "https://www.wi-fi.org/downloads-registered-guest/Device_Provisioning_Protocol_Draft_Technical_Specification_Package_v0_0_23_0.zip/31255"
 
 venue:
-  group: anima
-  mail: anima@ietf.org
+  group: emu
+  mail: emu@ietf.org
   github: mcr/eap-onboarding.git
 
 
