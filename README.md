@@ -1,12 +1,10 @@
-# ANIMA operational considerations for BRSKI Registrar
+# EAP-Onboarding -- an unauthenticated client mode for EAP-TLS
 
-The ANIMA WG Bootstrapping Remote Secure Key Infrastructure (BRSKI)
-protocol involves three parties: Pledge (device), Registrar and
-Manufacturer Authorized Signing Authority (MASA).
-
-This repository contains operational considerations for the Registrar
-function.  It is a candidate document for the ANIMA WG
-http://datatracker.ietf.org/wg/anima 
+This document describes a method by which an unconfigured device can
+use EAP-TLS to join a network on which further device onboarding, network
+attestation or other remediation can be done.
+While RFC 5216 supports EAP-TLS without a client certificate, that document defines no method by which unauthenticated EAP-TLS can be used.
+This draft addresses that issue.
 
 
 

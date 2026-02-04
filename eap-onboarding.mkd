@@ -49,7 +49,7 @@ informative:
 venue:
   group: emu
   mail: emu@ietf.org
-  github: mcr/eap-onboarding.git
+  github: emu-wg/eap-onboarding.git
 
 
 --- abstract
